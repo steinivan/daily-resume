@@ -4,6 +4,34 @@ Este archivo describe cómo utilizar las tools MCP expuestas por este context pr
 
 ---
 
+## Configuración del contexto (requerido por el usuario)
+
+Antes de comenzar, el usuario debe añadir al contexto dos datos fundamentales:
+
+### 1. ID de usuario de ClickUp
+- **¿Para qué sirve?** Permite a la IA asignar tareas correctamente.
+- **¿Cómo obtenerlo?** Ejecuta la tool `get_clickup_user_info` y copia el campo `id` del usuario autenticado.
+- **Formato en el contexto:**
+  ```json
+  {
+    "clickup_user_id": "<TU_USER_ID>"
+  }
+  ```
+
+### 2. List ID de ClickUp
+- **¿Para qué sirve?** Es necesario para crear o buscar tareas en la lista correcta.
+- **¿Cómo obtenerlo?** Puedes verlo en la URL de ClickUp o pedirlo a tu administrador.
+- **Formato en el contexto:**
+  ```json
+  {
+    "clickup_list_id": "<TU_LIST_ID>"
+  }
+  ```
+
+> **Nota:** Si la IA no encuentra estos valores en el contexto, debe pedirle al usuario que los añada usando el formato anterior.
+
+---
+
 ## Tools disponibles
 
 ### 1. Actividades diarias
@@ -12,6 +40,7 @@ Este archivo describe cómo utilizar las tools MCP expuestas por este context pr
 - **get_activities_by_user_and_date**: Consulta actividades de un usuario en una fecha específica.
 
 ### 2. Gestión de tareas ClickUp
+- **get_clickup_user_info**: Obtiene la información del usuario autenticado en ClickUp (incluye el ID de usuario).
 - **get_task**: Trae una tarea de ClickUp por ID.
 - **get_tasks**: Busca tareas por nombre o filtros.
 - **create_task**: Crea una nueva tarea en ClickUp.
@@ -45,58 +74,13 @@ Este archivo describe cómo utilizar las tools MCP expuestas por este context pr
 
 ---
 
-## Ejemplo de interacción MDC
-
-```json
-// Inicio de tarea
-{
-  "tool": "get_tasks",
-  "params": { "listId": "123", "params": { "order_by": "created" } }
-}
-// Si no existe:
-{
-  "tool": "create_task",
-  "params": { "listId": "123", "params": { "name": "Nueva tarea", "description": "Descripción inicial" } }
-}
-// Añadir información al template:
-{
-  "tool": "update_task",
-  "params": { "taskId": "456", "params": { "description": "Title: ...\nTesting: ..." } }
-}
-// Mover a in progress (si aplica)
-{
-  "tool": "update_task",
-  "params": { "taskId": "456", "params": { "status": "in progress" } }
-}
-// Registrar actividad
-{
-  "tool": "add_activity",
-  "params": { "user": "ana", "date": "2024-06-07", "activity": "Se inició la tarea, sin bloqueos." }
-}
-// Finalizar tarea
-{
-  "tool": "update_task",
-  "params": { "taskId": "456", "params": { "status": "ready for qa", "description": "Title: ...\nTesting: Completado por ana." } }
-}
-{
-  "tool": "add_activity",
-  "params": { "user": "ana", "date": "2024-06-07", "activity": "Tarea finalizada y lista para QA." }
-}
-// Registrar tiempo invertido (preguntar al usuario antes)
-{
-  "tool": "register_time_in_task",
-  "params": { "taskId": "456", "timeSpent": "7200000" } // 2 horas en milisegundos
-}
-```
-
----
-
 ## Buenas prácticas
 - **Descripciones claras:** Las actividades deben ser precisas y útiles para informes.
 - **Templates:** Nunca modificar los títulos de los templates, solo completar la información.
 - **Sincronización:** Mantener la información de ClickUp y el registro de actividades alineados.
 - **Cierre explícito:** No cerrar tareas hasta que el usuario lo indique.
 - **Registro de tiempo:** Siempre preguntar al usuario el tiempo real invertido antes de registrar el tiempo en la tarea.
+- **Contexto completo:** Si la IA no tiene el `clickup_user_id` o el `clickup_list_id`, debe pedirle al usuario que los añada al contexto usando el formato indicado arriba.
 
 ---
 
