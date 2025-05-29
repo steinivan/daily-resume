@@ -261,7 +261,7 @@ export function registerClickupTools(server: McpServer) {
         "Registrar tiempo en una tarea especifica de clickup usando el id de la tarea",
         {
             taskId: z.string().describe("id de la tarea"),
-            timeSpent: z.string().describe("Tiempo en milisegundos")
+            timeSpent: z.string().describe("Tiempo en milisegundos de lo que llevo la tarea")
         },
         async ({ taskId, timeSpent }) => {
             const url = `${CLICKUP_API_BASE}/task/${taskId}/time`;
