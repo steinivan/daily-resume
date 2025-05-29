@@ -1,16 +1,31 @@
 {
-  "name": "clickup",
+  "name": "mcp-daily-tasks",
   "version": "1.0.0",
-  "description": "mcp para clickup",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "description": "MCP para manejar tareas y resúmenes con integración ClickUp.",
+  "main": "main.ts",
   "type": "module",
-  "author": "",
+  "author": "Stein Ivan",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/steinivan/daily-resume"
+  },
+  "keywords": [
+    "mcp",
+    "clickup",
+    "tareas",
+    "automatización"
+  ],
+  "files": [
+    "main.ts",
+    "tools/"
+  ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",
+    "dotenv": "^16.5.0",
     "zod": "^3.25.28"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.24"
   }
 }

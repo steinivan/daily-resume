@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-const CLICKUP_API_KEY = "pk_82731465_9BYYQEGQ6HEPGZS0XHOUPD39QQ6QIPZZ";
+const CLICKUP_API_KEY = process.env.CLICKUP_API_KEY || '';
 const CLICKUP_API_BASE = "https://api.clickup.com/api/v2";
 
 function getClickupHeaders() {
@@ -255,4 +255,56 @@ export function registerClickupTools(server: McpServer) {
             }
         }
     );
+
+    server.tool(
+        "register_time_in_task",
+        "Registrar tiempo en una tarea especifica de clickup usando el id de la tarea",
+        {
+            taskId: z.string().describe("id de la tarea"),
+            timeSpent: z.string().describe("Tiempo en milisegundos")
+        },
+        async ({ taskId, timeSpent }) => {
+            const url = `${CLICKUP_API_BASE}/task/${taskId}/time`;
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: getClickupHeaders(),
+                    body: JSON.stringify({
+                        time: timeSpent,
+                        start: new Date().toISOString(),
+                    })
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    return {
+                        content: [
+                            {
+                                type: "text",
+                                text: `Error al registrar el tiempo: ${response.status} - ${errorText}`
+                            }
+                        ]
+                    };
+                }
+                const data = await response.json();
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: `Tiempo registrado correctamente: ${JSON.stringify(data)}`
+                        }
+                    ]
+                };
+            } catch (error) {
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: `Error de red o inesperado: ${error}`
+                        }
+                    ]
+                };
+            }
+        }
+    );
+
 } 
