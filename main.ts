@@ -3,6 +3,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { registerClickupTools } from "./tools/clickup.js";
 import { SqliteStorageProvider } from "./sqliteStorageProvider.js";
 import { registerActivityTools } from "./tools/activities.js";
+import { registerSlackTool } from "./tools/slackTool.js";
 
 const server = new McpServer({
     name: "clickup",
@@ -11,6 +12,7 @@ const server = new McpServer({
 
 registerClickupTools(server);
 registerActivityTools(server);
+registerSlackTool(server);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
