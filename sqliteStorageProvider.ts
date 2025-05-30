@@ -35,17 +35,17 @@ export class SqliteStorageProvider {
   getActivitiesByDate(date: string): Activity[] {
     return this.db.prepare(
       'SELECT * FROM activities WHERE date = ?'
-    ).all(date);
+    ).all(date) as Activity[];
   }
 
   getActivitiesByUserAndDate(user: string, date: string): Activity[] {
     return this.db.prepare(
       'SELECT * FROM activities WHERE user = ? AND date = ?'
-    ).all(user, date);
+    ).all(user, date) as Activity[];
   }
 
   getAllActivities(): Activity[] {
-    return this.db.prepare('SELECT * FROM activities').all();
+    return this.db.prepare('SELECT * FROM activities').all() as Activity[];
   }
 
   getActivitiesByRange(startDate: string, endDate: string, name?: string): Activity[] {
@@ -55,6 +55,6 @@ export class SqliteStorageProvider {
       query += ' AND LOWER(user) LIKE ?';
       params.push(`%${name.toLowerCase()}%`);
     }
-    return this.db.prepare(query).all(...params);
+    return this.db.prepare(query).all(...params) as Activity[];
   }
 } 

@@ -314,7 +314,7 @@ export function registerClickupTools(server: McpServer) {
                     content: [
                         {
                             type: "text",
-                            text: `❌ Error de red o inesperado al registrar tiempo: ${error.message || error}`
+                            text: `❌ Error de red o inesperado al registrar tiempo: ${(error as Error).message || error}`
                         }
                     ]
                 };
