@@ -47,4 +47,14 @@ export class SqliteStorageProvider {
   getAllActivities(): Activity[] {
     return this.db.prepare('SELECT * FROM activities').all();
   }
+
+  getActivitiesByRange(startDate: string, endDate: string, name?: string): Activity[] {
+    let query = 'SELECT * FROM activities WHERE date >= ? AND date <= ?';
+    const params: any[] = [startDate, endDate];
+    if (name) {
+      query += ' AND LOWER(user) LIKE ?';
+      params.push(`%${name.toLowerCase()}%`);
+    }
+    return this.db.prepare(query).all(...params);
+  }
 } 

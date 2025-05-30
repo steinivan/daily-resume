@@ -7,7 +7,6 @@ const CLICKUP_API_BASE = "https://api.clickup.com/api/v2";
 function getClickupHeaders() {
     return {
         accept: "application/json",
-        'content-type': 'application/json',
         Authorization: CLICKUP_API_KEY
     };
 }
@@ -272,22 +271,21 @@ export function registerClickupTools(server: McpServer) {
             }).describe("Tiempo en milisegundos que tomó la tarea (mínimo 1000ms)")
         },
         async ({ taskId, timeSpent }) => {
-            console.log({taskId, timeSpent}, typeof timeSpent)
             const time = timeSpent;
             const start = Date.now() - time;
             const url = `${CLICKUP_API_BASE}/task/${taskId}/time`;
-            
+
             try {
                 const response = await fetch(url, {
                     method: "POST",
-                    headers: getClickupHeaders(),
-                    body: JSON.stringify({start: start, end: Date.now(), time: time})
+                    headers: { ...getClickupHeaders(), 'content-type': 'application/json' },
+                    body: JSON.stringify({ start: start, end: Date.now(), time: time })
                 });
-                
+
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error(`Error ${response.status}:`, errorText);
-                    
+
                     return {
                         content: [
                             {
@@ -297,10 +295,10 @@ export function registerClickupTools(server: McpServer) {
                         ]
                     };
                 }
-                
+
                 const data = await response.json();
                 const timeInHours = (time / (1000 * 60 * 60)).toFixed(2);
-                
+
                 return {
                     content: [
                         {
@@ -309,7 +307,7 @@ export function registerClickupTools(server: McpServer) {
                         }
                     ]
                 };
-                
+
             } catch (error) {
                 console.error("Error inesperado:", error);
                 return {
@@ -321,7 +319,7 @@ export function registerClickupTools(server: McpServer) {
                     ]
                 };
             }
-        }
+        },
     );
 
     server.tool(

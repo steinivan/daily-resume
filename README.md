@@ -28,16 +28,106 @@ Antes de comenzar, el usuario debe añadir al contexto dos datos fundamentales:
   }
   ```
 
-> **Nota:** Si la IA no encuentra estos valores en el contexto, debe pedirle al usuario que los añada usando el formato anterior.
+### 3. Nombre del Proyecto (title)
+- **¿Para qué sirve?** Permite registrar y consultar actividades asociadas al proyecto correcto, y mejora la trazabilidad.
+- **¿Cómo añadirlo?** Debes incluir el campo `title` en el contexto MCP con el nombre exacto o más representativo del proyecto.
+- **Formato en el contexto:**
+  ```json
+  {
+    "title": "Nombre de tu proyecto principal"
+  }
+  ```
+
+> **Nota:** Si la IA no encuentra estos valores (`clickup_user_id`, `clickup_list_id` o `title`) en el contexto, debe pedirle al usuario que los añada usando el formato anterior.
 
 ---
 
 ## Tools disponibles
 
 ### 1. Actividades diarias
-- **add_activity**: Registra una actividad realizada, con usuario, fecha y descripción.
+- **add_activity**: Registra automáticamente una actividad realizada, con usuario, fecha y descripción, cada vez que haya progreso relevante o valga la pena anotar la actividad para el informe. 
+  - Si el contexto MCP tiene un campo `title` (nombre de proyecto), o un nombre de proyecto relevante, se debe pasar como `project_name` y la actividad se registrará bajo ese nombre. Si no, se usará el nombre de usuario.
+  - La coincidencia de nombre de proyecto es flexible: se usará el nombre más similar encontrado en el contexto.
+  - No debe preguntarse al usuario antes de registrar la actividad.
 - **get_activities_by_date**: Consulta todas las actividades registradas en una fecha.
 - **get_activities_by_user_and_date**: Consulta actividades de un usuario en una fecha específica.
+- **get_activities_by_period**: Consulta actividades para un periodo predefinido o rango personalizado, opcionalmente filtrando por nombre parcial de usuario o proyecto (case-insensitive). El cálculo de fechas se realiza siempre usando el reloj del servidor MCP, nunca la fecha de la IA.
+
+#### Ejemplo de uso de add_activity con nombre de proyecto:
+```json
+{
+  "user": "usuario_demo",
+  "activity": "Implementación de endpoint de login.",
+  "project_name": "Mi Proyecto Principal" // Si existe en el contexto, se usará este nombre
+}
+```
+
+#### Ejemplo de uso de add_activity con fallback a usuario:
+```json
+{
+  "user": "usuario_demo",
+  "activity": "Implementación de endpoint de login."
+}
+```
+
+#### Ejemplo de uso de get_activities_by_period:
+- **Hoy:**
+```json
+{
+  "period": "today"
+}
+```
+- **Ayer:**
+```json
+{
+  "period": "yesterday"
+}
+```
+- **Esta semana:**
+```json
+{
+  "period": "this_week"
+}
+```
+- **Semana pasada:**
+```json
+{
+  "period": "last_week"
+}
+```
+- **Últimos 7 días:**
+```json
+{
+  "period": "last_7_days"
+}
+```
+- **Este mes:**
+```json
+{
+  "period": "this_month"
+}
+```
+- **Mes pasado:**
+```json
+{
+  "period": "last_month"
+}
+```
+- **Rango personalizado:**
+```json
+{
+  "period": "custom_range",
+  "start_date": "2024-06-01",
+  "end_date": "2024-06-07"
+}
+```
+- **Filtrar por nombre parcial de usuario/proyecto:**
+```json
+{
+  "period": "this_month",
+  "name": "proyecto"
+}
+```
 
 ### 2. Gestión de tareas ClickUp
 - **get_clickup_user_info**: Obtiene la información del usuario autenticado en ClickUp (incluye el ID de usuario).
@@ -58,7 +148,8 @@ Antes de comenzar, el usuario debe añadir al contexto dos datos fundamentales:
 - **Estado:** Una vez creada o localizada la tarea, moverla a "in progress" si no está ya en ese estado.
 
 ### 2. Registro de actividad
-- Cada vez que se termina una subtarea, se resuelve un bloqueo, o finaliza una conversación relevante, la IA debe registrar la actividad usando `add_activity`.
+- Cada vez que se termina una subtarea, se resuelve un bloqueo, se finaliza una conversación relevante, o haya cualquier progreso significativo, la IA debe registrar automáticamente la actividad usando `add_activity`.
+- No debe preguntarse al usuario antes de registrar la actividad.
 - La descripción debe ser clara, breve y contener:
   - Qué se hizo.
   - Si hubo bloqueos o problemas.
