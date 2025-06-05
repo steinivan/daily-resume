@@ -32,3 +32,4 @@ Personas o equipos que gestionan tareas en ClickUp y requieren reportar avances 
 - `tools/`: Utilidades y scripts para integraciones.
 - `package.json`: Dependencias y scripts del proyecto.
 
+> Importante! esto es un MCP por lo tanto el usuario no tiene interaccion o modificacion directa con los archivos sino que todo lo que se hace es atraves de la ia. Cosas como credenciales y similares se manejan por enviroments.
