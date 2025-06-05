@@ -1,0 +1,34 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+## Contexto General del Proyecto MCP
+
+El proyecto **mcp** es una herramienta orientada a la gestión de tareas en ClickUp, el envío de reportes diarios a Slack y el almacenamiento de actividades para la generación de reportes.
+
+### Objetivo principal
+- Gestionar tareas en ClickUp desde la herramienta.
+- Enviar reportes diarios de actividades y tareas a canales de Slack.
+- Registrar y almacenar actividades asociadas a proyectos para reportes posteriores.
+
+### Componentes principales
+- **Integración con ClickUp:** Permite crear, actualizar y consultar tareas directamente desde la herramienta.
+- **Reportes diarios a Slack:** Facilita el envío automático o manual de reportes diarios de actividades o tareas a canales de Slack.
+- **Registro de actividades:** Guarda actividades realizadas, asociadas a proyectos, para su posterior consulta y generación de reportes.
+
+### Usuarios principales
+Personas o equipos que gestionan tareas en ClickUp y requieren reportar avances o actividades diarias/semanales a través de Slack.
+
+### Flujo de trabajo típico
+1. Se gestionan tareas en ClickUp desde la herramienta.
+2. Se registran actividades diarias asociadas a proyectos.
+3. Se generan y envían reportes diarios a Slack, incluyendo tareas y actividades relevantes.
+
+### Archivos y directorios importantes
+- `main.ts`: Punto de entrada de la aplicación.
+- `sqliteStorageProvider.ts` y `activities.db`: Manejo y almacenamiento de actividades.
+- `tools/`: Utilidades y scripts para integraciones.
+- `package.json`: Dependencias y scripts del proyecto.
+

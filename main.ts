@@ -5,6 +5,7 @@ import { registerClickupTools } from "./tools/clickup.js";
 import { SqliteStorageProvider } from "./sqliteStorageProvider.js";
 import { registerActivityTools } from "./tools/activities.js";
 import { registerSlackTool } from "./tools/slackTool.js";
+import { registerClockifyTools } from "./tools/clockify.js";
 
 const server = new McpServer({
     name: "clickup",
@@ -14,6 +15,7 @@ const server = new McpServer({
 registerClickupTools(server);
 registerActivityTools(server);
 registerSlackTool(server);
+registerClockifyTools(server);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);

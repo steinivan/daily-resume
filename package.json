@@ -1,6 +1,6 @@
 {
   "name": "mcp-daily-tasks",
-  "version": "1.0.1",
+  "version": "1.0.4",
   "description": "MCP para manejar tareas y resúmenes con integración ClickUp.",
   "main": "dist/main.js",
   "type": "module",
