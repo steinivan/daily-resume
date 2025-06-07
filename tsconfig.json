@@ -13,7 +13,7 @@
   "include": [
     "*.ts",
     "tools/**/*.ts"
-  ],
+, "old_tools/slackTool.ts", "old_tools/clickup.ts"  ],
   "exclude": [
     "node_modules",
     "dist"

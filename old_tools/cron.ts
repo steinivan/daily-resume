@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
 import cron, { ScheduledTask } from "node-cron";
-import { generateReport } from "../aiProcessor";
-import { sendThreadMessage } from "./slackTool.js";
+import { generateReport } from "../aiProcessor.js";
+import { sendThreadMessage } from "../old_tools/slackTool.js";
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 

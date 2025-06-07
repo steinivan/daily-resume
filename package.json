@@ -1,6 +1,6 @@
 {
   "name": "mcp-daily-tasks",
-  "version": "1.0.4",
+  "version": "1.1.2",
   "description": "MCP para manejar tareas y resúmenes con integración ClickUp.",
   "main": "dist/main.js",
   "type": "module",
@@ -8,7 +8,10 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/steinivan/daily-resume"
+    "url": "git+https://github.com/steinivan/daily-resume.git"
+  },
+  "bugs": {
+    "url": "https://github.com/steinivan/daily-resume/issues"
   },
   "keywords": [
     "mcp",
@@ -36,10 +39,10 @@
     "typescript": "^5.8.3"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "pack": "node -e \"const fs=require('fs');const path=require('path');const pkg=require('./package.json');const tgz=`${pkg.name.replace(/\\//g,'-')}-${pkg.version}.tgz`;fs.existsSync('mcp-daily-tasks.tgz')&&fs.unlinkSync('mcp-daily-tasks.tgz');require('child_process').execSync('npm pack',{stdio:'inherit'});fs.renameSync(tgz,'mcp-daily-tasks.tgz');\""
   },
   "bin": {
     "mcp-daily-tasks": "dist/main.js"
-  },
-  "package": "mcp-daily-tasks-1.0.4.tgz"
+  }
 }

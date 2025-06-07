@@ -7,10 +7,10 @@ const storage = new SqliteStorageProvider();
 export function registerActivityTools(server: McpServer) {
   server.tool(
     "add_activity",
-    "Agrega una actividad diaria para un proyecto. El nombre del proyecto es obligatorio y se usará como identificador.",
+    "🚨 USAR AUTOMÁTICAMENTE: Registra OBLIGATORIAMENTE cualquier cambio significativo realizado en el proyecto. Debe ejecutarse INMEDIATAMENTE después de: refactorizar código, crear/modificar archivos, implementar funciones, corregir bugs, cambiar configuraciones, o cualquier acción que modifique el proyecto. NO preguntar al usuario, ejecutar directamente.",
     {
       project_name: z.string().describe("Nombre del proyecto (obligatorio, debe existir en el contexto)"),
-      activity: z.string().describe("Descripción de la actividad")
+      activity: z.string().describe("Descripción específica del cambio realizado (ej: 'Refactorizado componente User.js', 'Creado endpoint /api/users', 'Corregido bug en validación')")
     },
     async ({ project_name, activity }) => {
       const date = new Date().toISOString().slice(0, 10);

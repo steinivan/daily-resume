@@ -1,6 +1,6 @@
 # MCP: Gestión de Actividades, Tareas y Reportes Automáticos
 
-Herramienta para gestionar tareas en ClickUp, registrar actividades y enviar reportes automáticos a Slack, con soporte flexible para IA local o remota para la generación de reportes.
+Herramienta para gestionar tareas en ClickUp, registrar actividades y enviar reportes automáticos a Slack, con soporte flexible para IA (Google Gemini) para la generación de reportes.
 
 ---
 
@@ -12,23 +12,25 @@ npm install
 
 ---
 
-## Configuración de IA para generación de reportes
+## Configuración de IA para generación de reportes (Google Gemini)
 
 Toda la configuración del backend de IA se realiza **exclusivamente mediante variables de entorno**. No es necesario ni posible editar archivos de configuración internos.
 
-### Ejemplo para Hugging Face
+### **Obtener tu API Key de Google Gemini**
 
-Define las siguientes variables de entorno antes de ejecutar el MCP:
+1. Ingresa a [https://aistudio.google.com/apikey](https://aistudio.google.com/apikey) con tu cuenta de Google.
+2. Genera una nueva API Key si no tienes una.
+3. Copia la clave y guárdala de forma segura.
 
-```bash
-export AI_BACKEND=huggingface
-export MODEL_URL=https://api-inference.huggingface.co/models/meta-llama/Llama-2-7b-chat-hf
-export HF_TOKEN=tu_token_de_huggingface
+### **Configura la variable de entorno**
+
+Agrega en tu entorno o en un archivo `.env`:
+
+```env
+GOOGLE_GEMINI_API_KEY=tu_api_key_de_gemini
 ```
 
-- `AI_BACKEND`: (opcional, por defecto `huggingface`) Tipo de backend de IA a usar.
-- `MODEL_URL`: URL del modelo a usar (obligatorio para Hugging Face).
-- `HF_TOKEN`: Token de autenticación de Hugging Face.
+- `GOOGLE_GEMINI_API_KEY`: Tu API Key de Google Gemini obtenida en el paso anterior.
 
 **No incluyas tu token en el código ni en el repositorio.**
 
@@ -46,9 +48,9 @@ console.log(report);
 
 ---
 
-## Extensión y soporte para otros backends
+## Extensión y soporte para otros servicios
 
-Puedes agregar soporte para otros backends de IA (locales o remotos) editando `aiProcessor.ts` y ampliando la lógica para leer la configuración desde variables de entorno.
+Puedes agregar soporte para otros backends de IA editando `aiProcessor.ts` y ampliando la lógica para leer la configuración desde variables de entorno.
 
 ---
 

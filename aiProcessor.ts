@@ -1,24 +1,20 @@
 export async function generateReport(prompt: string): Promise<string | null> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) return null; // Si no hay API key, no se usa IA
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+  if (!apiKey) return null;
+  const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+  const response = await fetch(url, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "llama-3-8b-instant",
-      messages: [
-        { role: "system", content: "Eres un generador de reportes para tareas y actividades." },
-        { role: "user", content: prompt }
-      ],
-      max_tokens: 512,
-      temperature: 0.7
+      contents: [
+        { parts: [{ text: prompt }] }
+      ]
     })
   });
-  if (!response.ok) throw new Error(`Groq API error: ${response.statusText}`);
+  if (!response.ok) throw new Error(`Google Gemini API error: ${response.statusText}`);
   const data = await response.json();
-  // El resultado está en data.choices[0].message.content
-  return data.choices?.[0]?.message?.content || null;
+  // El texto generado está en data.candidates[0].content.parts[0].text
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
 } 
