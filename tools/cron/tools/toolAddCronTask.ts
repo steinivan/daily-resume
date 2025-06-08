@@ -3,7 +3,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { loadCronTasks, saveCronTasks } from "../utils/cronStorage.js";
 import { scheduleTask, CronTask } from "../utils/cronScheduler.js";
 import { generateReport } from "../../../aiProcessor.js";
-import { sendThreadMessage } from "../../../tools/slack/utils/postSlackThreadMessage.js";
+import { postSlackThreadMessage } from "../../../tools/slack/utils/postSlackThreadMessage.js";
 
 export function registerAddCronTaskTool(server: McpServer) {
   server.tool(
@@ -23,7 +23,7 @@ export function registerAddCronTaskTool(server: McpServer) {
       scheduleTask(task, async (t) => {
         const report = await generateReport(t.prompt);
         if (!report) return;
-        await sendThreadMessage(t.channel, "Reporte automático generado por MCP:", report);
+        await postSlackThreadMessage(t.channel, "Reporte automático generado por MCP:", report);
       });
       return { content: [{ type: "text", text: JSON.stringify({ id, message: "Cron task created successfully." }, null, 2) }] };
     }

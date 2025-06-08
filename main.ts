@@ -8,6 +8,7 @@ import { registerCronTools } from "./tools/cron/index.js";
 import { registerTodayActivitiesResource } from "./resource/todayActivitiesResource.js";
 import { ClickupTaskRulesResource } from "./resource/clickupTaskRules.js";
 import { registerClickupTools } from "./tools/clickup/index.js";
+import { registerPrompts } from "./prompts/index.js";
 
 const server = new McpServer({
     name: "clickup",
@@ -21,6 +22,6 @@ registerClockifyTools(server);
 registerCronTools(server);
 registerTodayActivitiesResource(server);
 ClickupTaskRulesResource(server);
-
+registerPrompts(server);
 const transport = new StdioServerTransport();
 await server.connect(transport);

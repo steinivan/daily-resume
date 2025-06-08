@@ -5,7 +5,7 @@ import { registerRemoveCronTaskTool } from "./tools/toolRemoveCronTask.js";
 import { loadCronTasks } from "./utils/cronStorage.js";
 import { scheduleTask, CronTask } from "./utils/cronScheduler.js";
 import { generateReport } from "../../aiProcessor.js";
-import { sendThreadMessage } from "../slack/utils/postSlackThreadMessage.js";
+import { postSlackThreadMessage } from "../slack/utils/postSlackThreadMessage.js";
 
 export function registerCronTools(server: McpServer) {
   // Registrar tools MCP
@@ -19,7 +19,7 @@ export function registerCronTools(server: McpServer) {
     scheduleTask(task, async (t) => {
       const report = await generateReport(t.prompt);
       if (!report) return;
-      await sendThreadMessage(t.channel, "Reporte automático generado por MCP:", report);
+      await postSlackThreadMessage(t.channel, "Reporte automático generado por MCP:", report);
     });
   });
 } 
