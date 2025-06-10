@@ -39,6 +39,7 @@
     "typescript": "^5.8.3"
   },
   "scripts": {
+    "test": "tsc && npx @modelcontextprotocol/inspector node dist/main.js",
     "build": "tsc",
     "pack": "node -e \"const fs=require('fs');const path=require('path');const pkg=require('./package.json');const tgz=`${pkg.name.replace(/\\//g,'-')}-${pkg.version}.tgz`;fs.existsSync('mcp-daily-tasks.tgz')&&fs.unlinkSync('mcp-daily-tasks.tgz');require('child_process').execSync('npm pack',{stdio:'inherit'});fs.renameSync(tgz,'mcp-daily-tasks.tgz');\""
   },

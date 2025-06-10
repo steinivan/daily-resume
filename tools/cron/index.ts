@@ -7,7 +7,7 @@ import { scheduleTask, CronTask } from "./utils/cronScheduler.js";
 import { generateReport } from "../../aiProcessor.js";
 import { postSlackThreadMessage } from "../slack/utils/postSlackThreadMessage.js";
 
-export function registerCronTools(server: McpServer) {
+export default function registerCronTools(server: McpServer) {
   // Registrar tools MCP
   registerAddCronTaskTool(server);
   registerListCronTasksTool(server);

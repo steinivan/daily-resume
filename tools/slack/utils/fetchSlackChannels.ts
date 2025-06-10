@@ -4,9 +4,10 @@ dotenv.config();
 const SLACK_TOKEN = process.env.SLACK_TOKEN;
 const SLACK_API_URL = 'https://slack.com/api';
 
-if (!SLACK_TOKEN) {
-  throw new Error('SLACK_TOKEN is not defined in .env');
-}
+// if (!SLACK_TOKEN) {
+//   return null;
+//   // throw new Error('SLACK_TOKEN is not defined in .env');
+// }
 
 export async function fetchSlackChannels() {
   const response = await fetch(`${SLACK_API_URL}/conversations.list`, {

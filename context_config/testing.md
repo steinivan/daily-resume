@@ -1,0 +1,1 @@
+npx @modelcontextprotocol/inspector node dist/main.js

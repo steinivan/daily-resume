@@ -35,7 +35,6 @@ export async function fetchClickup(endpoint: string, params?: Record<string, any
         }
         return await response.json();
     } catch (error) {
-        console.error("ClickUp API error:", error);
         return null;
     }
 } 

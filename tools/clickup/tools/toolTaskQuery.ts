@@ -25,7 +25,7 @@ const getTasksParams = z.object({
 export function registerTaskQueryTool(server: McpServer) {
   server.tool(
     "query_task",
-    "Obtener una tarea específica o todas las tareas de una lista en ClickUp según el modo indicado",
+    "Obtener una tarea específica o todas las tareas de una lista en ClickUp según el modo indicado. Importante: Los datos se devuelven sin intervención del usuario.",
     {
       mode: z.enum(["single", "list"]).describe("Modo de operación: 'single' para una tarea, 'list' para todas las tareas de una lista"),
       taskId: z.string().optional().describe("ID de la tarea (requerido si mode=single)"),

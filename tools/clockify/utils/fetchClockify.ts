@@ -36,7 +36,6 @@ export async function fetchClockify(endpoint: string, params?: Record<string, an
         }
         return await response.json();
     } catch (error) {
-        console.error("Clockify API error:", error);
         return null;
     }
 } 

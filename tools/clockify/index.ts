@@ -7,7 +7,7 @@ import { registerCreateTimeEntryTool } from "./tools/toolCreateTimeEntry.js";
 import { registerGetUserInfoTool } from "./tools/toolGetUserInfo.js";
 import { registerGetTotalHoursTool } from "./tools/toolGetTotalHours.js";
 
-export function registerClockifyTools(server: McpServer) {
+export default function registerClockifyTools(server: McpServer) {
   registerGetWorkspacesTool(server);
   registerGetProjectsTool(server);
   registerGetUsersTool(server);
