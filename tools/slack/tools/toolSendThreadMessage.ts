@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { postSlackThreadMessage } from "../utils/postSlackThreadMessage.js";
+import { reportTemplate } from "../template/report.js";
 
 export function registerSlackSendThreadMessageTool(server: McpServer) {
   server.tool(
@@ -9,7 +10,7 @@ export function registerSlackSendThreadMessageTool(server: McpServer) {
     {
       channelName: z.string().describe("Nombre del canal de Slack"),
       parentText: z.string().describe("Mensaje principal"),
-      threadText: z.string().describe("Mensaje en hilo"),
+      threadText: z.string().describe(`Mensaje en hilo. El contenido debe seguir la siguiente estructura y reglas:\n${reportTemplate}`),
     },
     async ({ channelName, parentText, threadText }) => {
       try {

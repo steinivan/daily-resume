@@ -38,5 +38,5 @@ export function registerCreateTimeEntryTool(server: McpServer) {
         return { content: [{ type: "text", text: `Error de red o inesperado: ${error}` }] };
       }
     }
-  );
+  ).disable();
 } 

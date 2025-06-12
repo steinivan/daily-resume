@@ -16,5 +16,5 @@ export function registerGetProjectsTool(server: McpServer) {
       }
       return { content: [{ type: "text", text: JSON.stringify(data) }] };
     }
-  );
+  ).disable();
 } 

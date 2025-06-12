@@ -16,5 +16,5 @@ export function registerGetUsersTool(server: McpServer) {
       }
       return { content: [{ type: "text", text: JSON.stringify(data) }] };
     }
-  );
+  ).disable();
 } 

@@ -21,5 +21,5 @@ export function registerGetTimeEntriesTool(server: McpServer) {
       }
       return { content: [{ type: "text", text: JSON.stringify(data) }] };
     }
-  );
+  ).disable();
 } 

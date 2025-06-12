@@ -1,4 +1,7 @@
 import Database from 'better-sqlite3';
+import * as path from 'path';
+import * as os from 'os';
+import * as fs from 'fs';
 
 export interface Activity {
   id?: number;
@@ -12,8 +15,24 @@ const REQUIRED_KEYS = ["clickup_list_id", "project_title", "listId"];
 export class SqliteStorageProvider {
   private db: Database.Database;
 
-  constructor(dbPath: string = 'activities.db') {
-    this.db = new Database(dbPath);
+  constructor(dbPath?: string) {
+    // Opción 1: Usar directorio home del usuario
+    const defaultPath = path.join(os.homedir(), '.mcp-activities', 'activities.db');
+    
+    // Opción 2: Usar directorio de datos de la aplicación
+    // const defaultPath = path.join(os.homedir(), 'AppData', 'Local', 'mcp-activities', 'activities.db');
+    
+    const finalPath = dbPath || defaultPath;
+    
+    // Crear el directorio si no existe
+    const dir = path.dirname(finalPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    
+    console.log(`Using database at: ${finalPath}`);
+    
+    this.db = new Database(finalPath);
     this.createTable();
   }
 
@@ -23,18 +42,53 @@ export class SqliteStorageProvider {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user TEXT NOT NULL,
         date TEXT NOT NULL,
-        activity TEXT NOT NULL
+        activity TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `).run();
+    
     this.db.prepare(`
       CREATE TABLE IF NOT EXISTS project_metadata (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project TEXT NOT NULL,
         key TEXT NOT NULL,
         value TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(project, key)
       )
     `).run();
+
+    // Crear índices para mejor rendimiento
+    this.db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_activities_user_date ON activities(user, date)
+    `).run();
+    
+    this.db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_activities_date ON activities(date)
+    `).run();
+    
+    this.db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_project_metadata_project ON project_metadata(project)
+    `).run();
+  }
+
+  // Método para verificar la conexión y ubicación de la DB
+  getDatabasePath(): string {
+    return this.db.name;
+  }
+
+  // Método para hacer backup de la base de datos
+  backup(backupPath?: string): string {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const defaultBackupPath = path.join(
+      path.dirname(this.db.name), 
+      `activities_backup_${timestamp}.db`
+    );
+    const finalBackupPath = backupPath || defaultBackupPath;
+    
+    fs.copyFileSync(this.db.name, finalBackupPath);
+    return finalBackupPath;
   }
 
   addActivity(activity: Activity): void {
@@ -45,18 +99,20 @@ export class SqliteStorageProvider {
 
   getActivitiesByDate(date: string): Activity[] {
     return this.db.prepare(
-      'SELECT * FROM activities WHERE date = ?'
+      'SELECT * FROM activities WHERE date = ? ORDER BY created_at DESC'
     ).all(date) as Activity[];
   }
 
   getActivitiesByUserAndDate(user: string, date: string): Activity[] {
     return this.db.prepare(
-      'SELECT * FROM activities WHERE user = ? AND date = ?'
+      'SELECT * FROM activities WHERE user = ? AND date = ? ORDER BY created_at DESC'
     ).all(user, date) as Activity[];
   }
 
   getAllActivities(): Activity[] {
-    return this.db.prepare('SELECT * FROM activities').all() as Activity[];
+    return this.db.prepare(
+      'SELECT * FROM activities ORDER BY date DESC, created_at DESC'
+    ).all() as Activity[];
   }
 
   getActivitiesByRange(startDate: string, endDate: string, name?: string): Activity[] {
@@ -66,27 +122,30 @@ export class SqliteStorageProvider {
       query += ' AND LOWER(user) LIKE ?';
       params.push(`%${name.toLowerCase()}%`);
     }
+    query += ' ORDER BY date DESC, created_at DESC';
     return this.db.prepare(query).all(...params) as Activity[];
   }
 
-  // CRUD para metadatos de proyecto
+  // CRUD para metadatos de proyecto con timestamps
   setProjectMetadata(project: string, key: string, value: string): void {
-    this.db.prepare(
-      'INSERT OR REPLACE INTO project_metadata (project, key, value) VALUES (?, ?, ?)' 
-    ).run(project, key, value);
+    this.db.prepare(`
+      INSERT OR REPLACE INTO project_metadata (project, key, value, updated_at) 
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+    `).run(project, key, value);
   }
 
   getProjectMetadata(project: string, key: string): string | undefined {
     const row = this.db.prepare(
       'SELECT value FROM project_metadata WHERE project = ? AND key = ?'
     ).get(project, key) as { value?: string } | undefined;
-    return row && row.value ? row.value : undefined;
+    return row?.value;
   }
 
   getAllProjectMetadata(project: string): Record<string, string> {
     const rows = this.db.prepare(
-      'SELECT key, value FROM project_metadata WHERE project = ?'
+      'SELECT key, value FROM project_metadata WHERE project = ? ORDER BY key'
     ).all(project) as { key: string, value: string }[];
+    
     const result: Record<string, string> = {};
     for (const row of rows) {
       result[row.key] = row.value;
@@ -99,4 +158,22 @@ export class SqliteStorageProvider {
       'DELETE FROM project_metadata WHERE project = ? AND key = ?'
     ).run(project, key);
   }
-} 
+
+  // Método para limpiar datos antiguos (opcional)
+  cleanupOldActivities(daysToKeep: number = 365): number {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+    const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
+    
+    const result = this.db.prepare(
+      'DELETE FROM activities WHERE date < ?'
+    ).run(cutoffDateStr);
+    
+    return result.changes;
+  }
+
+  // Cerrar la conexión de manera segura
+  close(): void {
+    this.db.close();
+  }
+}

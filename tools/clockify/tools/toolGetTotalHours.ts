@@ -68,5 +68,5 @@ export function registerGetTotalHoursTool(server: McpServer) {
         }]
       };
     }
-  );
+  ).disable();
 } 
