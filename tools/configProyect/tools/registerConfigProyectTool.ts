@@ -12,17 +12,19 @@ export function registerConfigProyectTool(server: McpServer) {
         project: z.string().describe("Identificador del proyecto a configurar. Esto se obtiene del package json en name o lo da el usuario."),
         channel: z.string().optional().describe("Canal de comunicación del proyecto en slack. Esto se obtiene del usuario."),
         clickup_list_id: z.string().optional().describe("Identificador de la lista de clickup. Esto se obtiene del usuario."),
-        data: z.record(z.string(), z.string()).describe("Objeto clave-valor con los campos a configurar")
       },
-      async ({ project, data }) => {
+      async ({ project, channel, clickup_list_id }) => {
         const db = new SqliteStorageProvider();
-        for (const key of Object.keys(data)) {
-          db.setProjectMetadata(project, key, data[key]);
+        if(channel){
+          db.setProjectMetadata(project, "channel", channel);
+        }
+        if(clickup_list_id){
+          db.setProjectMetadata(project, "clickup_list_id", clickup_list_id);
         }
         return {
           content: [{
             type: "text",
-            text: `Configuración actualizada para el proyecto '${project}': ${Object.keys(data).join(", ")}`
+            text: `Configuración actualizada para el proyecto '${project}': ${channel ? `channel: ${channel}, ` : ""}${clickup_list_id ? `clickup_list_id: ${clickup_list_id}` : ""}`
           }]
         };
       }

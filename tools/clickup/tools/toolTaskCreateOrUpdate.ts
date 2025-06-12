@@ -2,6 +2,7 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getClickupHeaders } from "../utils/fetchClickup.js";
 import { templates } from "../prompts/templates.js";
+import { SqliteStorageProvider } from "../../../sqliteStorageProvider.js";
 
 const CLICKUP_API_BASE = "https://api.clickup.com/api/v2";
 
@@ -80,10 +81,21 @@ export function registerTaskManagerTool(server: McpServer) {
     "Crea o actualiza una tarea en ClickUp",
     {
       mode: z.enum(["create", "update"]).describe("Modo de operación: 'create' para crear, 'update' para actualizar"),
+      project: z.string().describe("Nombre del proyecto. Esto se obtiene del package json en name o lo da el usuario."),
       create: createParams.optional().describe(templates.createParamsDescription),
       update: updateParams.optional().describe(templates.updateParamsDescription)
     },
-    async ({ mode, create, update }) => {
+    async ({ mode, project, create, update }) => {
+      const db = new SqliteStorageProvider();
+      const clickupListId = db.getProjectMetadata(project, "clickup_list_id");
+      if (!clickupListId) {
+        return {
+          content: [{
+            type: "text",
+            text: `❌ El proyecto '${project}' no tiene configurado 'clickup_list_id'. Debe usar la herramienta 'configuration-proyect' para registrar este dato antes de gestionar tareas.`
+          }]
+        };
+      }
       try {
         if (mode === "create") {
           // Validación de workflow
