@@ -4,5 +4,5 @@ import { registerGetActivitiesByProjectAndPeriodTool } from "./tools/toolGetActi
 
 export default function registerActivityTools(server: McpServer) {
   registerAddActivityTool(server);
-  // registerGetActivitiesByProjectAndPeriodTool(server);
+  registerGetActivitiesByProjectAndPeriodTool(server);
 } 

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getClickupHeaders } from "../utils/fetchClickup.js";
+import { templates } from "../prompts/templates.js";
 
 const CLICKUP_API_BASE = "https://api.clickup.com/api/v2";
 
@@ -23,7 +24,7 @@ const createParams = z.object({
     parent: z.string().optional().describe("ID de la tarea padre (para subtareas)"),
     notify_all: z.boolean().optional().describe("Notificar a todos los usuarios asignados"),
     check_required_custom_fields: z.boolean().optional().describe("Validar campos personalizados requeridos"),
-    workflow_validated: z.boolean().optional().describe("Indica si viene del workflow validado")
+    time_spent: z.number().optional().describe("Tiempo en ms"),
   })
 });
 
@@ -48,80 +49,39 @@ const updateParams = z.object({
       add: z.array(z.number().optional()),
       rem: z.array(z.number().optional()),
     }).optional().describe("IDs de usuarios asignados o desasignados"),
-    workflow_validated: z.boolean().optional().describe("Indica si viene del workflow validado")
   })
 });
 
+// Función auxiliar para registrar tiempo
+async function registerTimeInTask(taskId: string, timeSpent: number) {
+  const start = Date.now() - timeSpent;
+  const url = `${CLICKUP_API_BASE}/task/${taskId}/time`;
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { ...getClickupHeaders(), 'content-type': 'application/json' },
+      body: JSON.stringify({ start: start, end: Date.now(), time: timeSpent })
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error al registrar tiempo: ${response.status} - ${errorText}`);
+    }
+    const data = await response.json();
+    const timeInHours = (timeSpent / (1000 * 60 * 60)).toFixed(2);
+    return `✅ Tiempo registrado: ${timeInHours} horas (${timeSpent}ms)`;
+  } catch (error) {
+    throw new Error(`Error al registrar tiempo: ${(error as Error).message || error}`);
+  }
+}
+
 export function registerTaskManagerTool(server: McpServer) {
-  // Tool obsoleta que redirige al workflow
   server.tool(
     "manage_task",
-    "⚠️ HERRAMIENTA OBSOLETA - No usar directamente. Para crear tareas nuevas usa el prompt 'crear-tarea-clickup' que incluye workflow completo con validaciones automáticas.",
-    {
-      mode: z.enum(["create", "update"]).describe("Modo obsoleto - usar prompt en su lugar"),
-      create: createParams.optional(),
-      update: updateParams.optional()
-    },
-    async ({ mode, create, update }) => {
-      return { 
-        content: [{ 
-          type: "text", 
-          text: `❌ **HERRAMIENTA OBSOLETA DETECTADA**
-
-Esta tool 'manage_task' está obsoleta y no debe usarse directamente.
-
-🎯 **PARA CREAR TAREAS NUEVAS:**
-Usa el prompt 'crear-tarea-clickup' que te guiará por el workflow completo con validaciones automáticas.
-
-🔧 **PARA OPERACIONES INTERNAS:**
-El sistema usará automáticamente '_internal_manage_task' como parte del workflow.
-
-**Ejemplo de uso correcto:**
-\`\`\`
-Prompt: crear-tarea-clickup
-Título: "Implementar login de usuarios"
-Tipo: "feature"
-Descripción: "Sistema de autenticación básico"
-\`\`\`
-
-Por favor, usa el prompt correcto para una experiencia óptima.` 
-        }] 
-      };
-    }
-  );
-
-  // Tool interna para uso del workflow
-  server.tool(
-    "_internal_manage_task",
-    "🔒 Tool interna del workflow de ClickUp - Solo para uso automático del sistema. No usar directamente.",
+    "Crea o actualiza una tarea en ClickUp",
     {
       mode: z.enum(["create", "update"]).describe("Modo de operación: 'create' para crear, 'update' para actualizar"),
-      create: createParams.optional().describe(`Parámetros para crear tarea (requerido si mode=create).
-SOLO para uso interno del workflow. Flujo automático:
-1. Solo envía el título (formato: '<TIPO>: <título de la tarea>' en mayúsculas, sin caracteres especiales) y los campos mínimos requeridos. No incluyas descripción ni template.
-2. Tras crear, el workflow consultará la tarea con 'query_task' (modo 'single') usando el taskId retornado.
-
-Reglas automáticas:
-- El título debe ser: 'FEATURE', 'BUG', 'REFACTOR', 'TEST', 'DOC', 'CHORE', 'STYLE', 'PERF', 'CI', 'OTHER' seguido de dos puntos y el nombre, todo en mayúsculas, sin caracteres especiales.
-- No envíes descripción ni template en este paso.
-- Debe incluir workflow_validated: true`),
-      update: updateParams.optional().describe(`Parámetros para actualizar tarea (requerido si mode=update).
-SOLO para uso interno del workflow. Flujo automático:
-1. El workflow ya consultó la tarea con 'query_task' (modo 'single') usando el taskId.
-2. Si la descripción estaba vacía, se creó el template markdown con las secciones obligatorias y títulos en negrita:
-   **Descripción**
-   **Objetivos**
-   **Cambios realizados**
-   **Pruebas**
-   **Consideraciones/Limitaciones**
-   **Comentarios adicionales**
-3. Si ya existían secciones, se actualizaron o rellenaron las existentes.
-4. Se actualiza con el campo 'description' validado.
-
-Reglas automáticas:
-- El título mantiene el formato: '<TIPO>: <título de la tarea>' en mayúsculas, sin caracteres especiales.
-- La descripción es clara, descriptiva y en markdown, con títulos/secciones en negrita.
-- Debe incluir workflow_validated: true`)
+      create: createParams.optional().describe(templates.createParamsDescription),
+      update: updateParams.optional().describe(templates.updateParamsDescription)
     },
     async ({ mode, create, update }) => {
       try {
@@ -130,42 +90,13 @@ Reglas automáticas:
           if (!create) {
             return { content: [{ type: "text", text: "❌ Faltan parámetros de creación" }] };
           }
-
-          if (!create.params.workflow_validated) {
-            return { 
-              content: [{ 
-                type: "text", 
-                text: `❌ **ACCESO NO AUTORIZADO A TOOL INTERNA**
-
-Esta tool '_internal_manage_task' es solo para uso interno del workflow automático.
-
-🎯 **PARA CREAR TAREAS:**
-Usa el prompt 'crear-tarea-clickup' que te guiará paso a paso:
-
-1. Define tu tarea con título y descripción
-2. El sistema validará automáticamente el formato
-3. Se creará con el template completo
-4. Se aplicarán todas las reglas de validación
-
-**No intentes usar esta tool directamente.** El workflow se encarga de todo automáticamente.` 
-              }] 
-            };
-          }
-
           // Validar formato del título
           const titleRegex = /^(FEATURE|BUG|REFACTOR|TEST|DOC|CHORE|STYLE|PERF|CI|OTHER):\s*.+$/;
           if (!titleRegex.test(create.params.name)) {
             return { 
               content: [{ 
                 type: "text", 
-                text: `❌ **ERROR DE FORMATO EN TÍTULO**
-
-Título recibido: "${create.params.name}"
-
-El título debe seguir el formato: '<TIPO>: <descripción>'
-Donde TIPO debe ser uno de: FEATURE, BUG, REFACTOR, TEST, DOC, CHORE, STYLE, PERF, CI, OTHER (en mayúsculas)
-
-Ejemplo correcto: "FEATURE: Implementar sistema de login"` 
+                text: templates.getTitleFormatError(create.params.name)
               }] 
             };
           }
@@ -178,8 +109,7 @@ Ejemplo correcto: "FEATURE: Implementar sistema de login"`
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              ...create.params,
-              workflow_validated: undefined // No enviar este campo a la API
+              ...create.params
             })
           });
 
@@ -189,19 +119,22 @@ Ejemplo correcto: "FEATURE: Implementar sistema de login"`
           }
 
           const data = await response.json();
+          let timeRegistrationMessage = "";
+
+          // Si hay time_spent, registrar el tiempo
+          if (create.params.time_spent) {
+            try {
+              timeRegistrationMessage = await registerTimeInTask(data.id, create.params.time_spent);
+            } catch (error) {
+              timeRegistrationMessage = `❌ ${(error as Error).message}`;
+            }
+          }
+
           return { 
             content: [{ 
               type: "text", 
-              text: `✅ **PASO 1 COMPLETADO - TAREA CREADA**
-
-Tarea creada exitosamente:
-- ID: ${data.id}
-- Título: ${data.name}
-- URL: ${data.url}
-
-🔄 **SIGUIENTE:** Proceder con PASO 2 - Consultar tarea para analizar descripción existente.
-
-Datos completos: ${JSON.stringify(data, null, 2)}` 
+              text: `${templates.getTaskCreationSuccess(data.id, data.name, data.url, JSON.stringify(data, null, 2))}
+${timeRegistrationMessage ? `\n\n${timeRegistrationMessage}` : ""}`
             }] 
           };
         }
@@ -209,22 +142,6 @@ Datos completos: ${JSON.stringify(data, null, 2)}`
         if (mode === "update") {
           if (!update) {
             return { content: [{ type: "text", text: "❌ Faltan parámetros de actualización" }] };
-          }
-
-          if (!update.params.workflow_validated) {
-            return { 
-              content: [{ 
-                type: "text", 
-                text: `❌ **ACCESO NO AUTORIZADO A TOOL INTERNA**
-
-Esta tool '_internal_manage_task' es solo para uso interno del workflow automático.
-
-🎯 **PARA ACTUALIZAR TAREAS:**
-Usa el prompt 'crear-tarea-clickup' que incluye el proceso completo de actualización automática.
-
-**No intentes usar esta tool directamente.** El workflow maneja todas las validaciones y actualizaciones.` 
-              }] 
-            };
           }
 
           const url = `${CLICKUP_API_BASE}/task/${update.taskId}`;
@@ -235,8 +152,7 @@ Usa el prompt 'crear-tarea-clickup' que incluye el proceso completo de actualiza
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              ...update.params,
-              workflow_validated: undefined // No enviar este campo a la API
+              ...update.params
             })
           });
 
@@ -246,20 +162,25 @@ Usa el prompt 'crear-tarea-clickup' que incluye el proceso completo de actualiza
           }
 
           const data = await response.json();
+          let timeRegistrationMessage = "";
+
+          // Si hay time_spent, registrar el tiempo
+          if (update.params.time_spent) {
+            try {
+              const timeSpentMs = typeof update.params.time_spent === 'string' 
+                ? parseInt(update.params.time_spent, 10) 
+                : update.params.time_spent;
+              timeRegistrationMessage = await registerTimeInTask(data.id, timeSpentMs);
+            } catch (error) {
+              timeRegistrationMessage = `❌ ${(error as Error).message}`;
+            }
+          }
+
           return { 
             content: [{ 
               type: "text", 
-              text: `✅ **PASO 3 COMPLETADO - TAREA ACTUALIZADA**
-
-Tarea actualizada exitosamente:
-- ID: ${data.id}
-- Título: ${data.name}
-- Descripción: Template aplicado correctamente
-- URL: ${data.url}
-
-🎉 **WORKFLOW COMPLETADO** - La tarea está lista con todas las validaciones aplicadas.
-
-Datos completos: ${JSON.stringify(data, null, 2)}` 
+              text: `${templates.getTaskUpdateSuccess(data.id, data.name, data.url, JSON.stringify(data, null, 2))}
+${timeRegistrationMessage ? `\n\n${timeRegistrationMessage}` : ""}`
             }] 
           };
         }

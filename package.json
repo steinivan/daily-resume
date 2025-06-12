@@ -1,6 +1,6 @@
 {
   "name": "mcp-daily-tasks",
-  "version": "1.1.2",
+  "version": "2.0.0",
   "description": "MCP para manejar tareas y resúmenes con integración ClickUp.",
   "main": "dist/main.js",
   "type": "module",
@@ -41,6 +41,7 @@
   "scripts": {
     "test": "tsc && npx @modelcontextprotocol/inspector node dist/main.js",
     "build": "tsc",
+    "copy-md": "cp -r tools/**/*.md dist/tools/",
     "pack": "node -e \"const fs=require('fs');const path=require('path');const pkg=require('./package.json');const tgz=`${pkg.name.replace(/\\//g,'-')}-${pkg.version}.tgz`;fs.existsSync('mcp-daily-tasks.tgz')&&fs.unlinkSync('mcp-daily-tasks.tgz');require('child_process').execSync('npm pack',{stdio:'inherit'});fs.renameSync(tgz,'mcp-daily-tasks.tgz');\""
   },
   "bin": {

@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { storage } from "../utils/storageProvider.js";
 
-function getDateRangeForPeriod(period: string, startDate?: string, endDate?: string): { start: string, end: string } {
+export function getDateRangeForPeriod(period: string, startDate?: string, endDate?: string): { start: string, end: string } {
   const now = new Date();
   const pad = (n: number) => n.toString().padStart(2, '0');
   const toYMD = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;

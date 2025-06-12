@@ -1,20 +1,42 @@
-export async function generateReport(prompt: string): Promise<string | null> {
-  const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
-  if (!apiKey) return null;
-  const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      contents: [
-        { parts: [{ text: prompt }] }
-      ]
-    })
-  });
-  if (!response.ok) throw new Error(`Google Gemini API error: ${response.statusText}`);
-  const data = await response.json();
-  // El texto generado está en data.candidates[0].content.parts[0].text
-  return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+import { generateGeminiResponse } from "./tools/google_gemini/index.js";
+
+export interface ProcessableData {
+  tasks?: any[];
+  metrics?: any;
+  context?: any;
+  [key: string]: any;
+}
+
+export async function generateReport(prompt: string, data: ProcessableData): Promise<string | null> {
+  try {
+    // Preparar el contexto para la IA
+    const context = {
+      timestamp: new Date().toISOString(),
+      data: data,
+      instructions: prompt
+    };
+
+    // Generar el prompt completo
+    const fullPrompt = `
+Contexto:
+${JSON.stringify(context, null, 2)}
+
+Instrucciones:
+${prompt}
+
+Por favor, genera un reporte basado en el contexto y las instrucciones proporcionadas.
+El reporte debe ser conciso, estructurado y fácil de entender.
+`;
+
+    // Obtener respuesta de Gemini
+    const response = await generateGeminiResponse(fullPrompt);
+    if (!response) {
+      throw new Error("No se pudo generar respuesta de la IA");
+    }
+
+    return response;
+  } catch (error) {
+    console.error("Error generando reporte:", error);
+    return null;
+  }
 } 
