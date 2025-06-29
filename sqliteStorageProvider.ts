@@ -91,10 +91,11 @@ export class SqliteStorageProvider {
     return finalBackupPath;
   }
 
-  addActivity(activity: Activity): void {
-    this.db.prepare(
+  addActivity(activity: Activity): number {
+    const result = this.db.prepare(
       'INSERT INTO activities (user, date, activity) VALUES (?, ?, ?)'
     ).run(activity.user, activity.date, activity.activity);
+    return result.lastInsertRowid as number;
   }
 
   getActivitiesByDate(date: string): Activity[] {
@@ -175,5 +176,33 @@ export class SqliteStorageProvider {
   // Cerrar la conexión de manera segura
   close(): void {
     this.db.close();
+  }
+
+  updateActivityById(id: number, fields: Partial<Omit<Activity, 'id'>>): void {
+    const sets = [];
+    const params: any[] = [];
+    if (fields.user !== undefined) {
+      sets.push('user = ?');
+      params.push(fields.user);
+    }
+    if (fields.date !== undefined) {
+      sets.push('date = ?');
+      params.push(fields.date);
+    }
+    if (fields.activity !== undefined) {
+      sets.push('activity = ?');
+      params.push(fields.activity);
+    }
+    if (sets.length === 0) return;
+    params.push(id);
+    this.db.prepare(
+      `UPDATE activities SET ${sets.join(', ')} WHERE id = ?`
+    ).run(...params);
+  }
+
+  deleteActivityById(id: number): void {
+    this.db.prepare(
+      'DELETE FROM activities WHERE id = ?'
+    ).run(id);
   }
 }

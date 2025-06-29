@@ -85,7 +85,7 @@ export function registerGetActivitiesByProjectAndPeriodTool(server: McpServer) {
       return {
         content: activities.map(a => ({
           type: "text",
-          text: `Fecha: ${a.date} | Proyecto: ${a.user} | Actividad: ${a.activity}`
+          text: `Fecha: ${a.date} | Proyecto: ${a.user} | Actividad: ${a.activity} | id: ${a.id}`
         }))
       };
     }
