@@ -1,61 +1,35 @@
-# MCP: Gestión de Actividades, Tareas y Reportes Automáticos
+# MCP: Gestión de Tareas, Actividades, Reportes y Registro de Tiempo
 
-Herramienta para gestionar tareas en ClickUp, registrar actividades y enviar reportes automáticos a Slack, con soporte flexible para IA (Google Gemini) para la generación de reportes.
+Herramienta MCP para automatizar la gestión de tareas en ClickUp, registro de actividades, reportes diarios a Slack y registro de tiempos en Clockify. El usuario no interactúa con el código ni la base de datos; toda acción es gestionada por IA y herramientas internas.
 
 ---
 
-## Instalación
+## Variables de entorno requeridas
 
-```bash
-npm install
+```
+"mcpServers": {
+    "daily_tasks": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-daily-tasks"
+      ],
+      "env": {
+        "SLACK_TOKEN": "{apiKey}" // opcional,
+        "CLOCKIFY_API_KEY": "{apiKey} // opcional",
+        "CLICKUP_API_KEY": "{apiKey} // opcional"
+      }
+    }
+  }
 ```
 
 ---
 
-## Configuración de IA para generación de reportes (Google Gemini)
+## Funcionalidades principales
 
-Toda la configuración del backend de IA se realiza **exclusivamente mediante variables de entorno**. No es necesario ni posible editar archivos de configuración internos.
+- Gestión automatizada de tareas en ClickUp (creación, actualización, consulta, validación de formato y metadatos).
+- Registro y consulta de actividades diarias asociadas a proyectos (persistencia en SQLite).
+- Envío de reportes diarios a Slack con formato estructurado y validado.
+- Registro y consulta de tiempos en Clockify (por usuario, proyecto o tarea, con filtros por fecha).
 
-### **Obtener tu API Key de Google Gemini**
 
-1. Ingresa a [https://aistudio.google.com/apikey](https://aistudio.google.com/apikey) con tu cuenta de Google.
-2. Genera una nueva API Key si no tienes una.
-3. Copia la clave y guárdala de forma segura.
-
-### **Configura la variable de entorno**
-
-Agrega en tu entorno o en un archivo `.env`:
-
-```env
-GOOGLE_GEMINI_API_KEY=tu_api_key_de_gemini
-```
-
-- `GOOGLE_GEMINI_API_KEY`: Tu API Key de Google Gemini obtenida en el paso anterior.
-
-**No incluyas tu token en el código ni en el repositorio.**
-
----
-
-## Uso de la función de generación de reportes
-
-```typescript
-import { generateReport } from './aiProcessor';
-
-const prompt = "Genera un resumen de las actividades de hoy.";
-const report = await generateReport(prompt);
-console.log(report);
-```
-
----
-
-## Extensión y soporte para otros servicios
-
-Puedes agregar soporte para otros backends de IA editando `aiProcessor.ts` y ampliando la lógica para leer la configuración desde variables de entorno.
-
----
-
-## Notas adicionales
-
-- El sistema es modular y seguro: toda la configuración se realiza por variables de entorno.
-- El usuario final no puede modificar archivos internos ni el código fuente.
-- El resto de la funcionalidad (gestión de tareas, actividades y reportes a Slack) se mantiene igual y puede integrarse con la generación automática de reportes usando IA.
