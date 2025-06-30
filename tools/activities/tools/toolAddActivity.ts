@@ -13,7 +13,10 @@ Requiere el nombre del proyecto y, según el modo, la descripción, el ID y los 
     {
       mode: z.enum(["create", "update", "delete"]).describe("Modo de operación: 'create', 'update' o 'delete'"),
       project_name: z.string().describe("Nombre del proyecto (obligatorio, debe existir en el contexto)"),
-      activity: z.string().optional().describe("Descripción específica del cambio realizado (requerido para create/update)"),
+      activity: z.object({
+        status: z.enum(['complete', 'progress', 'upcoming']),
+        value: z.string()
+      }).optional().describe("Objeto de actividad: status, time, value (requerido para create/update)"),
       id: z.union([z.number(), z.array(z.number())]).optional().describe("ID o array de IDs de la actividad (requerido para update/delete)"),
       user: z.string().optional().describe("Usuario a modificar (opcional para update)"),
       date: z.string().optional().describe("Fecha a modificar en formato YYYY-MM-DD (opcional para update)")
@@ -22,7 +25,7 @@ Requiere el nombre del proyecto y, según el modo, la descripción, el ID y los 
       if (mode === "create") {
         const now = new Date();
         const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-        storage.addActivity({ user: project_name, date: today, activity: activity || "" });
+        storage.addActivity({ user: project_name, date: today, activity: activity! });
         return { content: [{ type: "text", text: `✓` }] };
       }
       if (mode === "update") {
@@ -47,5 +50,5 @@ Requiere el nombre del proyecto y, según el modo, la descripción, el ID y los 
       }
       throw new Error("Modo no soportado");
     }
-  );
+  )
 } 

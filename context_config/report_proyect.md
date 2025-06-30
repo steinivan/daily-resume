@@ -22,8 +22,11 @@ Titulo de proyecto.
 ```json
 {
   "user": "usuario_demo",
-  "activity": "Implementación de endpoint de login.",
-  "project_name": "Mi Proyecto Principal" // Si existe en el contexto, se usará este nombre
+  "activity": {
+    "status": "complete",
+    "value": "Implementación de endpoint de login."
+  },
+  "project_name": "Mi Proyecto Principal"
 }
 ```
 
@@ -31,7 +34,11 @@ Titulo de proyecto.
 ```json
 {
   "user": "usuario_demo",
-  "activity": "Implementación de endpoint de login."
+  "activity": {
+    "status": "progress",
+    "time": "10:15:00",
+    "value": "Revisión de documentación."
+  }
 }
 ```
 

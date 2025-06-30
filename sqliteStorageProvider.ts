@@ -7,7 +7,10 @@ export interface Activity {
   id?: number;
   user: string;
   date: string; // YYYY-MM-DD
-  activity: string;
+  activity: {
+    status: 'complete' | 'progress' | 'upcoming';
+    value: string;
+  };
 }
 
 const REQUIRED_KEYS = ["clickup_list_id", "project_title", "listId"];
@@ -94,26 +97,26 @@ export class SqliteStorageProvider {
   addActivity(activity: Activity): number {
     const result = this.db.prepare(
       'INSERT INTO activities (user, date, activity) VALUES (?, ?, ?)'
-    ).run(activity.user, activity.date, activity.activity);
+    ).run(activity.user, activity.date, JSON.stringify(activity.activity));
     return result.lastInsertRowid as number;
   }
 
   getActivitiesByDate(date: string): Activity[] {
     return this.db.prepare(
       'SELECT * FROM activities WHERE date = ? ORDER BY created_at DESC'
-    ).all(date) as Activity[];
+    ).all(date).map((a: any) => ({ ...a, activity: JSON.parse(a.activity) })) as Activity[];
   }
 
   getActivitiesByUserAndDate(user: string, date: string): Activity[] {
     return this.db.prepare(
       'SELECT * FROM activities WHERE user = ? AND date = ? ORDER BY created_at DESC'
-    ).all(user, date) as Activity[];
+    ).all(user, date).map((a: any) => ({ ...a, activity: JSON.parse(a.activity) })) as Activity[];
   }
 
   getAllActivities(): Activity[] {
     return this.db.prepare(
       'SELECT * FROM activities ORDER BY date DESC, created_at DESC'
-    ).all() as Activity[];
+    ).all().map((a: any) => ({ ...a, activity: JSON.parse(a.activity) })) as Activity[];
   }
 
   getActivitiesByRange(startDate: string, endDate: string, name?: string): Activity[] {
@@ -124,7 +127,7 @@ export class SqliteStorageProvider {
       params.push(`%${name.toLowerCase()}%`);
     }
     query += ' ORDER BY date DESC, created_at DESC';
-    return this.db.prepare(query).all(...params) as Activity[];
+    return this.db.prepare(query).all(...params).map((a: any) => ({ ...a, activity: JSON.parse(a.activity) })) as Activity[];
   }
 
   // CRUD para metadatos de proyecto con timestamps
@@ -191,7 +194,7 @@ export class SqliteStorageProvider {
     }
     if (fields.activity !== undefined) {
       sets.push('activity = ?');
-      params.push(fields.activity);
+      params.push(JSON.stringify(fields.activity));
     }
     if (sets.length === 0) return;
     params.push(id);
