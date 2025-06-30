@@ -6,7 +6,7 @@ import { registerPrompts } from "./prompts/index.js";
 
 const server = new McpServer({
     name: "task-manager",
-    version: "2.0.1"
+    version: "2.0.3"
 });
 
 registerTools(server);

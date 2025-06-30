@@ -104,19 +104,58 @@ export class SqliteStorageProvider {
   getActivitiesByDate(date: string): Activity[] {
     return this.db.prepare(
       'SELECT * FROM activities WHERE date = ? ORDER BY created_at DESC'
-    ).all(date).map((a: any) => ({ ...a, activity: JSON.parse(a.activity) })) as Activity[];
+    ).all(date).map((a: any) => ({
+      ...a,
+      activity: (() => {
+        try {
+          const parsed = JSON.parse(a.activity);
+          if (typeof parsed === "object" && parsed !== null && "status" in parsed && "value" in parsed) {
+            return parsed;
+          }
+          return { status: "complete", value: parsed };
+        } catch {
+          return { status: "complete", value: a.activity };
+        }
+      })()
+    })) as Activity[];
   }
 
   getActivitiesByUserAndDate(user: string, date: string): Activity[] {
     return this.db.prepare(
       'SELECT * FROM activities WHERE user = ? AND date = ? ORDER BY created_at DESC'
-    ).all(user, date).map((a: any) => ({ ...a, activity: JSON.parse(a.activity) })) as Activity[];
+    ).all(user, date).map((a: any) => ({
+      ...a,
+      activity: (() => {
+        try {
+          const parsed = JSON.parse(a.activity);
+          if (typeof parsed === "object" && parsed !== null && "status" in parsed && "value" in parsed) {
+            return parsed;
+          }
+          return { status: "complete", value: parsed };
+        } catch {
+          return { status: "complete", value: a.activity };
+        }
+      })()
+    })) as Activity[];
   }
 
   getAllActivities(): Activity[] {
     return this.db.prepare(
       'SELECT * FROM activities ORDER BY date DESC, created_at DESC'
-    ).all().map((a: any) => ({ ...a, activity: JSON.parse(a.activity) })) as Activity[];
+    ).all().map((a: any) => ({
+      ...a,
+      activity: (() => {
+        try {
+          const parsed = JSON.parse(a.activity);
+          if (typeof parsed === "object" && parsed !== null && "status" in parsed && "value" in parsed) {
+            return parsed;
+          }
+          return { status: "complete", value: parsed };
+        } catch {
+          return { status: "complete", value: a.activity };
+        }
+      })()
+    })) as Activity[];
   }
 
   getActivitiesByRange(startDate: string, endDate: string, name?: string): Activity[] {
@@ -127,7 +166,20 @@ export class SqliteStorageProvider {
       params.push(`%${name.toLowerCase()}%`);
     }
     query += ' ORDER BY date DESC, created_at DESC';
-    return this.db.prepare(query).all(...params).map((a: any) => ({ ...a, activity: JSON.parse(a.activity) })) as Activity[];
+    return this.db.prepare(query).all(...params).map((a: any) => ({
+      ...a,
+      activity: (() => {
+        try {
+          const parsed = JSON.parse(a.activity);
+          if (typeof parsed === "object" && parsed !== null && "status" in parsed && "value" in parsed) {
+            return parsed;
+          }
+          return { status: "complete", value: parsed };
+        } catch {
+          return { status: "complete", value: a.activity };
+        }
+      })()
+    })) as Activity[];
   }
 
   // CRUD para metadatos de proyecto con timestamps
