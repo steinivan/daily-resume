@@ -6,7 +6,7 @@ import { reportTemplate } from "../template/report.js";
 export function registerSlackSendThreadMessageTool(server: McpServer) {
   server.tool(
     "slackSendThreadMessage",
-    "Envía un mensaje principal aclarando la daily y responde en hilo con otro mensaje en Slack con el reporte",
+    "Envía un reporte diario a Slack: publica un mensaje principal (por defecto 'Reporte diario', salvo que el usuario indique otro) y responde en hilo con el contenido estructurado del reporte.",
     {
       channelName: z.string().describe("Nombre del canal de Slack"),
       parentText: z.string().describe("Mensaje principal"),
