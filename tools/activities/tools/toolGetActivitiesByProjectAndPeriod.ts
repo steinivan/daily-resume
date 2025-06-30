@@ -90,4 +90,45 @@ export function registerGetActivitiesByProjectAndPeriodTool(server: McpServer) {
       };
     }
   );
+}
+
+export function registerGetProjectsWithActivitiesByPeriodTool(server: McpServer) {
+  server.tool(
+    "get_projects_with_activities_by_period",
+    "Obtiene todos los proyectos con actividades en un periodo predefinido o rango personalizado.",
+    {
+      period: z.enum(["today", "yesterday", "this_week", "last_week", "last_7_days", "this_month", "last_month", "custom_range"]).describe("Periodo a consultar"),
+      start_date: z.string().optional().describe("Fecha de inicio en formato YYYY-MM-DD (solo para custom_range)"),
+      end_date: z.string().optional().describe("Fecha de fin en formato YYYY-MM-DD (solo para custom_range)")
+    },
+    async ({ period, start_date, end_date }) => {
+      let range;
+      try {
+        range = getDateRangeForPeriod(period, start_date, end_date);
+      } catch (e: any) {
+        return {
+          content: [
+            { type: "text", text: e.message }
+          ]
+        };
+      }
+      const projects = storage.getProjectsByRange(range.start, range.end);
+      if (projects.length === 0) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `No hay proyectos con actividades en el periodo solicitado.`
+            }
+          ]
+        };
+      }
+      return {
+        content: projects.map(p => ({
+          type: "text",
+          text: `Proyecto: ${p}`
+        }))
+      };
+    }
+  );
 } 

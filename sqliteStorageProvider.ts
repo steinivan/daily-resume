@@ -260,4 +260,11 @@ export class SqliteStorageProvider {
       'DELETE FROM activities WHERE id = ?'
     ).run(id);
   }
+
+  getProjectsByRange(startDate: string, endDate: string): string[] {
+    const rows = this.db.prepare(
+      'SELECT DISTINCT user FROM activities WHERE date >= ? AND date <= ? ORDER BY user ASC'
+    ).all(startDate, endDate) as { user: string }[];
+    return rows.map(r => r.user);
+  }
 }
